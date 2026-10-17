@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>SARATHI-VAHAN | National Driving Licence Test &amp; Slot Booking Portal</title>
+  <meta name="description" content="A satirical dark-pattern UX demonstration styled as a driving licence slot booking portal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500;700&text=%E2%82%B9&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', '"Noto Sans"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            navy: { 700: '#1e3a8a', 800: '#172f6e', 900: '#0f1f4d' },
+            saffron: '#ff9933',
+            indgreen: '#138808',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    .stripe { background: linear-gradient(90deg, #ff9933 0 33.33%, #ffffff 33.33% 66.66%, #138808 66.66% 100%); }
+    input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 9999px; background: #e2e8f0; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 9999px; background: #1e3a8a; border: 2px solid #fff; box-shadow: 0 0 0 1px #1e3a8a; cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 9999px; background: #1e3a8a; border: 2px solid #fff; cursor: pointer; }
+    input[type="range"]:focus-visible { box-shadow: 0 0 0 3px rgba(30,58,138,.35); }
+    #chartStage { transition: transform 260ms cubic-bezier(.2,.8,.2,1); }
+    #declBox { transition: transform 240ms cubic-bezier(.2,.8,.2,1); }
+    .progress-bar { transition: width 700ms ease-out, background-color 300ms; }
+    @keyframes pulseDot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+    .pulse-dot { animation: pulseDot 1.4s infinite; }
+    @keyframes shimmer { from { background-position: -200px 0 } to { background-position: 200px 0 } }
+    .shimmer { background-image: linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%); background-size: 200px 100%; animation: shimmer 1.2s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { #chartStage, #declBox, .progress-bar { transition-duration: 60ms; } .pulse-dot, .shimmer { animation: none; } }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+
+  <!-- Sticky alert banner -->
+  <div class="sticky top-0 z-40 border-b border-amber-300 bg-amber-50" role="status" aria-live="polite">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-xs text-amber-900 sm:text-sm">
+      <span class="pulse-dot inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true"></span>
+      <p class="font-medium">
+        Attention: High Server Load Detected. Test slot reservation lock lasts for 180 seconds. Active Session #DL-94821-B.
+      </p>
+      <span class="ml-auto font-mono text-amber-800">Lock expires in <strong id="lockTimer">03:00</strong></span>
+    </div>
+  </div>
+
+  <div class="stripe h-1" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-4">
+        <svg class="h-12 w-12 shrink-0 text-saffron" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="21" stroke="currentColor" stroke-width="2.5" />
+          <circle cx="24" cy="24" r="4" fill="currentColor" />
+          <g stroke="currentColor" stroke-width="1.5">
+            <line x1="24" y1="5" x2="24" y2="43" /><line x1="5" y1="24" x2="43" y2="24" />
+            <line x1="10.6" y1="10.6" x2="37.4" y2="37.4" /><line x1="37.4" y1="10.6" x2="10.6" y2="37.4" />
+          </g>
+        </svg>
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Department of Road Transport &amp; Licensing</p>
+          <h1 class="text-lg font-bold leading-tight sm:text-xl">SARATHI-VAHAN</h1>
+          <p class="text-sm text-slate-300">National Driving Licence Test &amp; Slot Booking Portal</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="inline-flex items-center gap-1.5 rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-emerald-300">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          256-bit TLS Secured
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded border border-sky-500/40 bg-sky-500/10 px-2 py-1 text-sky-300">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+          e-KYC Verified Gateway
+        </span>
+        <span class="rounded border border-slate-700 bg-slate-800 px-2 py-1 font-mono text-slate-300">Ref: <span id="refId">SVN/2026/0004821930</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stepper -->
+  <nav aria-label="Application progress" class="border-b border-slate-200 bg-white">
+    <ol class="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-xs font-medium text-slate-500 sm:text-sm">
+      <li class="flex shrink-0 items-center gap-2 text-navy-700"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-navy-700 text-[11px] text-white">1</span>Applicant</li>
+      <li class="shrink-0 text-slate-300" aria-hidden="true">/</li>
+      <li class="flex shrink-0 items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[11px]">2</span>Test Slot</li>
+      <li class="shrink-0 text-slate-300" aria-hidden="true">/</li>
+      <li class="flex shrink-0 items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[11px]">3</span>Category &amp; Fees</li>
+      <li class="shrink-0 text-slate-300" aria-hidden="true">/</li>
+      <li class="flex shrink-0 items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[11px]">4</span>Vision Check</li>
+      <li class="shrink-0 text-slate-300" aria-hidden="true">/</li>
+      <li class="flex shrink-0 items-center gap-2"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[11px]">5</span>Declaration &amp; Payment</li>
+    </ol>
+  </nav>
+
+  <main id="top" class="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-3">
+    <div class="flex flex-col gap-6 lg:col-span-2">
+
+      <!-- Step 1: Applicant / DOB -->
+      <section id="step1" aria-labelledby="s1-title" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <h2 id="s1-title" class="text-sm font-semibold text-slate-900">Step 1 &middot; Applicant Particulars</h2>
+          <span class="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-500">FORM-2 / Rule 10</span>
+        </div>
+        <div class="grid gap-5 p-5">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="fullName" class="mb-1 block text-xs font-medium text-slate-600">Full Name (as per Aadhaar)</label>
+              <input id="fullName" type="text" autocomplete="off" placeholder="e.g. Rohan Sharma" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20" />
+            </div>
+            <div>
+              <label for="llNumber" class="mb-1 block text-xs font-medium text-slate-600">Learner&apos;s Licence No.</label>
+              <input id="llNumber" type="text" autocomplete="off" placeholder="MH12 20260012345" class="w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm uppercase focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-700/20" />
+            </div>
+          </div>
+
+          <fieldset class="rounded-md border border-slate-200 bg-slate-50 p-4">
+            <legend class="px-1 text-xs font-medium text-slate-600">Date of Birth <span class="text-red-600">*</span></legend>
+            <p class="mb-3 text-xs text-slate-500">Manual entry disabled to prevent age-tampering (Circular RTO/IT/2026/117). Use the calibrated selectors below.</p>
+            <div class="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span class="text-xs uppercase tracking-wider text-slate-500">Selected:</span>
+              <output id="dobOut" class="font-mono text-xl font-bold text-slate-900" aria-live="polite">1900-01-01</output>
+              <span id="ageOut" class="font-mono text-xs text-slate-500">Age: 126 yrs</span>
+            </div>
+            <div class="grid gap-4">
+              <div>
+                <div class="mb-1 flex justify-between text-xs"><label for="dobYear" class="font-medium text-slate-600">Year</label><span class="font-mono text-slate-400">1900 &ndash; 2026</span></div>
+                <input id="dobYear" type="range" min="1900" max="2026.999" step="0.0001" value="1900" class="w-full" />
+              </div>
+              <div>
+                <div class="mb-1 flex justify-between text-xs"><label for="dobMonth" class="font-medium text-slate-600">Month</label><span class="font-mono text-slate-400">01 &ndash; 12</span></div>
+                <input id="dobMonth" type="range" min="1" max="12.999" step="0.0001" value="1" class="w-full" />
+              </div>
+              <div>
+                <div class="mb-1 flex justify-between text-xs"><label for="dobDay" class="font-medium text-slate-600">Day</label><span class="font-mono text-slate-400">01 &ndash; 31</span></div>
+                <input id="dobDay" type="range" min="1" max="31.999" step="0.0001" value="1" class="w-full" />
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <!-- Step 2: Slots -->
+      <section id="step2" aria-labelledby="s2-title" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-3">
+          <h2 id="s2-title" class="text-sm font-semibold text-slate-900">Step 2 &middot; Driving Test Slot Selection</h2>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-emerald-500"></span>Available</span>
+            <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-red-800"></span>Booked</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <p class="mb-3 text-xs text-slate-500">Track: RTO Automated Driving Test Track (ADTT), Zone-04. Slots are allotted on a first-come, first-served basis.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] border-separate border-spacing-1 text-xs">
+              <caption class="sr-only">Seven-day test slot availability</caption>
+              <thead id="slotHead"></thead>
+              <tbody id="slotBody"></tbody>
+            </table>
+          </div>
+          <p id="slotSelected" class="mt-3 text-xs text-slate-500">No slot selected.</p>
+        </div>
+      </section>
+
+      <!-- Step 3: Category -->
+      <section id="step3" aria-labelledby="s3-title" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-3">
+          <h2 id="s3-title" class="text-sm font-semibold text-slate-900">Step 3 &middot; Class of Vehicle (COV)</h2>
+        </div>
+        <div class="grid gap-3 p-5">
+          <label class="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-slate-200 px-4 py-3 hover:bg-slate-50">
+            <span class="flex items-center gap-3">
+              <input id="covLMV" type="checkbox" data-fee="300" class="core h-4 w-4 rounded border-slate-300 accent-navy-700" />
+              <span class="text-sm">Light Motor Vehicle - Car (LMV)</span>
+            </span>
+            <span class="font-mono text-sm text-slate-600">&#8377;300</span>
+          </label>
+          <label class="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-slate-200 px-4 py-3 hover:bg-slate-50">
+            <span class="flex items-center gap-3">
+              <input id="covMCWG" type="checkbox" data-fee="200" class="core h-4 w-4 rounded border-slate-300 accent-navy-700" />
+              <span class="text-sm">Motorcycle with Gear (MCWG)</span>
+            </span>
+            <span class="font-mono text-sm text-slate-600">&#8377;200</span>
+          </label>
+
+          <div id="riders" class="hidden rounded-md border border-amber-200 bg-amber-50/60 p-3">
+            <p class="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              Statutory riders (auto-applied)
+            </p>
+            <label class="flex cursor-pointer items-center justify-between gap-3 py-1.5">
+              <span class="flex items-center gap-3">
+                <input id="riderHighway" type="checkbox" data-fee="1450" class="rider h-4 w-4 rounded border-slate-300 accent-amber-600" />
+                <span class="text-sm">Mandatory High-Risk Highway Indemnity Levy</span>
+              </span>
+              <span class="font-mono text-sm text-slate-600">&#8377;1,450</span>
+            </label>
+            <label class="flex cursor-pointer items-center justify-between gap-3 py-1.5">
+              <span class="flex items-center gap-3">
+                <input id="riderCattle" type="checkbox" data-fee="780" class="rider h-4 w-4 rounded border-slate-300 accent-amber-600" />
+                <span class="text-sm">Rural Cattle Crossing Infrastructure Surcharge</span>
+              </span>
+              <span class="font-mono text-sm text-slate-600">&#8377;780</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 4: Vision -->
+      <section id="step4" aria-labelledby="s4-title" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <h2 id="s4-title" class="text-sm font-semibold text-slate-900">Step 4 &middot; Pre-Test Vision &amp; Reaction Check</h2>
+          <span class="rounded bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">Mandatory</span>
+        </div>
+        <div class="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div>
+            <div class="relative flex h-48 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+              <div id="chartStage" class="flex h-full w-full items-center justify-center">
+                <span id="eGlyph" class="block select-none font-sans text-8xl font-bold leading-none text-slate-900" aria-hidden="true">E</span>
+              </div>
+              <span class="absolute left-2 top-2 font-mono text-[10px] text-slate-400">SNELLEN 6/6 &middot; TUMBLING-E</span>
+            </div>
+            <p id="flipWarn" class="mt-2 hidden rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800" role="status">
+              Dynamic Perceptual Calibration Active. Target inverted.
+            </p>
+          </div>
+          <div class="flex flex-col items-center gap-3">
+            <p class="text-center text-xs text-slate-500">Which way do the prongs of the &ldquo;E&rdquo; point?</p>
+            <div id="dirPad" class="grid grid-cols-3 gap-2" role="group" aria-label="Direction answers">
+              <span></span>
+              <button type="button" data-dir="up" class="dir rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy-700/30">Up</button>
+              <span></span>
+              <button type="button" data-dir="left" class="dir rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy-700/30">Left</button>
+              <span class="flex items-center justify-center text-slate-300" aria-hidden="true">&#9675;</span>
+              <button type="button" data-dir="right" class="dir rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy-700/30">Right</button>
+              <span></span>
+              <button type="button" data-dir="down" class="dir rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-navy-700/30">Down</button>
+              <span></span>
+            </div>
+            <p id="visionStatus" class="font-mono text-xs text-slate-600" aria-live="polite">Passes: 0 / 3 required</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 5: Declaration -->
+      <section id="step5" aria-labelledby="s5-title" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-3">
+          <h2 id="s5-title" class="text-sm font-semibold text-slate-900">Step 5 &middot; Self Declaration</h2>
+        </div>
+        <div class="p-5">
+          <p id="declText" class="mb-3 text-sm text-slate-700">
+            I solemnly declare that all test information and medical declarations provided are true under penalty of license forfeiture.
+          </p>
+          <div id="declZone" class="relative h-36 rounded-md border border-dashed border-slate-300 bg-slate-50">
+            <div id="declBox" class="absolute left-0 top-0 flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm">
+              <input id="declCheck" type="checkbox" aria-labelledby="declText" class="h-4 w-4 rounded border-slate-300 accent-navy-700" />
+              <span class="text-xs font-medium text-slate-600" aria-hidden="true">I Agree</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="flex flex-col gap-6">
+      <section aria-labelledby="fee-title" class="rounded-lg border border-slate-200 bg-white shadow-sm lg:sticky lg:top-16">
+        <div class="border-b border-slate-200 px-5 py-3">
+          <h2 id="fee-title" class="text-sm font-semibold text-slate-900">Total Fee Payable</h2>
+        </div>
+        <div class="p-5">
+          <ul id="feeLines" class="mb-4 grid gap-2 text-sm text-slate-600">
+            <li class="text-xs text-slate-400">No vehicle class selected.</li>
+          </ul>
+          <div class="flex items-baseline justify-between border-t border-slate-200 pt-3">
+            <span class="text-xs uppercase tracking-wider text-slate-500">Total</span>
+            <span id="feeTotal" class="font-mono text-2xl font-bold text-slate-900">&#8377;0</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-400">Inclusive of all applicable statutory levies.</p>
+          <button id="payBtn" type="button" class="mt-5 w-full rounded-md bg-navy-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-700/40 focus:ring-offset-2">
+            Pay &amp; Confirm Driving Slot
+          </button>
+          <div class="mt-4 flex items-center justify-center gap-3 text-[10px] uppercase tracking-wider text-slate-400">
+            <span>UPI</span><span aria-hidden="true">&middot;</span><span>NetBanking</span><span aria-hidden="true">&middot;</span><span>RuPay</span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="stat-title" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 id="stat-title" class="mb-3 text-sm font-semibold text-slate-900">Portal Status</h2>
+        <dl class="grid gap-2 text-xs">
+          <div class="flex justify-between"><dt class="text-slate-500">Applicants online</dt><dd id="onlineCount" class="font-mono text-slate-800">48,212</dd></div>
+          <div class="flex justify-between"><dt class="text-slate-500">Queue position</dt><dd id="queuePos" class="font-mono text-slate-800">#4,812</dd></div>
+          <div class="flex justify-between"><dt class="text-slate-500">Server node</dt><dd class="font-mono text-slate-800">NIC-DL-07</dd></div>
+          <div class="flex justify-between"><dt class="text-slate-500">Avg. response</dt><dd class="font-mono text-amber-700">4,180 ms</dd></div>
+        </dl>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-5 text-center text-[11px] text-slate-400">
+      <p>Content owned &amp; maintained by the Department of Road Transport &amp; Licensing. Best viewed in 1024&times;768.</p>
+      <p class="mt-1">Satirical dark-pattern UX demonstration. Not affiliated with any government body. No data is collected, stored, or transmitted.</p>
+    </div>
+  </footer>
+
+  <!-- Floating "booked" badge -->
+  <div id="slotBadge" class="pointer-events-none fixed z-50 hidden rounded-md bg-slate-900 px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg" role="status" aria-live="polite"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4" aria-live="assertive">
+    <div id="toastInner" class="hidden max-w-md rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-800 shadow-lg"></div>
+  </div>
+
+  <!-- Generic modal -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4">
+    <div id="modalCard" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody" class="w-full max-w-md rounded-lg bg-white shadow-2xl">
+      <div class="stripe h-1 rounded-t-lg" aria-hidden="true"></div>
+      <div class="p-6">
+        <h3 id="modalTitle" class="text-base font-semibold text-slate-900"></h3>
+        <div id="modalBody" class="mt-2 text-sm text-slate-600"></div>
+        <div id="modalProgress" class="mt-5 hidden">
+          <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+            <div id="progressBar" class="progress-bar shimmer h-full w-0 rounded-full bg-navy-700"></div>
+          </div>
+          <div class="mt-2 flex justify-between font-mono text-xs text-slate-500">
+            <span id="progressLabel">Initialising secure channel...</span>
+            <span id="progressPct">0%</span>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button id="modalBtn" type="button" class="rounded-md bg-navy-700 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-700/40 focus:ring-offset-2">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+    const $ = (id) => document.getElementById(id);
+    const pad = (n) => String(n).padStart(2, '0');
+    const inr = (n) => '\u20B9' + n.toLocaleString('en-IN');
+
+    /* ---------- Toast ---------- */
+    let toastTimer;
+    function toast(msg) {
+      const el = $('toastInner');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add('hidden'), 3800);
+    }
+
+    /* ---------- Modal ---------- */
+    let modalOnClose = null;
+    let lastFocus = null;
+    function openModal({ title, body, button = 'OK', progress = false, hideButton = false, onClose = null }) {
+      lastFocus = document.activeElement;
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = body;
+      $('modalProgress').classList.toggle('hidden', !progress);
+      $('modalBtn').textContent = button;
+      $('modalBtn').classList.toggle('hidden', hideButton);
+      modalOnClose = onClose;
+      $('modal').classList.remove('hidden');
+      $('modal').classList.add('flex');
+      if (!hideButton) $('modalBtn').focus();
+    }
+    function closeModal() {
+      $('modal').classList.add('hidden');
+      $('modal').classList.remove('flex');
+      const cb = modalOnClose;
+      modalOnClose = null;
+      if (cb) cb(); else if (lastFocus) lastFocus.focus();
+    }
+    $('modalBtn').addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !$('modal').classList.contains('hidden') && !$('modalBtn').classList.contains('hidden')) closeModal();
+    });
+
+    /* ---------- Header counters ---------- */
+    let ref = 4821930;
+    setInterval(() => { ref += Math.ceil(Math.random() * 7); $('refId').textContent = 'SVN/2026/' + String(ref).padStart(10, '0'); }, 700);
+    let online = 48212;
+    setInterval(() => { online += Math.round((Math.random() - 0.4) * 60); $('onlineCount').textContent = online.toLocaleString('en-IN'); }, 1500);
+
+    let lockLeft = 180;
+    let queue = 4812;
+    function renderLock() { $('lockTimer').textContent = pad(Math.floor(lockLeft / 60)) + ':' + pad(lockLeft % 60); }
+    setInterval(() => {
+      lockLeft -= 1;
+      if (lockLeft <= 0) {
+        lockLeft = 180;
+        queue += 1200 + Math.floor(Math.random() * 900);
+        $('queuePos').textContent = '#' + queue.toLocaleString('en-IN');
+        toast('Reservation lock expired. You have been re-queued at position #' + queue.toLocaleString('en-IN') + '.');
+      }
+      renderLock();
+    }, 1000);
+
+    /* ---------- A. DOB sliders ---------- */
+    const yr = $('dobYear'), mo = $('dobMonth'), dy = $('dobDay');
+    function renderDob() {
+      const y = Math.min(2026, Math.floor(+yr.value));
+      const m = Math.min(12, Math.floor(+mo.value));
+      const d = Math.min(31, Math.floor(+dy.value));
+      $('dobOut').textContent = y + '-' + pad(m) + '-' + pad(d);
+      $('ageOut').textContent = 'Age: ' + (2026 - y) + ' yrs';
+      [yr, mo, dy].forEach((s) => s.setAttribute('aria-valuetext', s === yr ? String(y) : s === mo ? pad(m) : pad(d)));
+    }
+    [yr, mo, dy].forEach((s) => s.addEventListener('input', renderDob));
+
+    /* ---------- B. Slot grid ---------- */
+    const TIMES = ['09:00 AM', '11:30 AM', '02:00 PM', '04:30 PM'];
+    const TRACTOR_DAY = 4;
+    const days = [];
+    const today = new Date();
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(today); d.setDate(today.getDate() + i);
+      days.push(d);
+    }
+    function buildSlots() {
+      const headRow = '<tr><th scope="col" class="w-28 px-2 py-2 text-left font-medium text-slate-500">Time</th>' +
+        days.map((d) => '<th scope="col" class="px-2 py-2 text-center font-medium text-slate-600">' +
+          d.toLocaleDateString('en-IN', { weekday: 'short' }) + '<br><span class="font-mono text-[11px] text-slate-400">' +
+          d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + '</span></th>').join('') + '</tr>';
+      $('slotHead').innerHTML = headRow;
+
+      let rows = '<tr><th scope="row" class="px-2 py-1 text-left font-mono font-medium text-slate-600">05:15 AM</th>';
+      days.forEach((_, i) => {
+        rows += i === TRACTOR_DAY
+          ? '<td><button type="button" id="tractorSlot" class="w-full rounded bg-emerald-500 px-1 py-2 text-[10px] font-semibold leading-tight text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-700">Available<br><span class="font-normal">Agri. Heavy Tractor Track</span></button></td>'
+          : '<td><span class="block w-full rounded bg-slate-100 px-1 py-2 text-center text-slate-300">&mdash;</span></td>';
+      });
+      rows += '</tr>';
+      TIMES.forEach((t) => {
+        rows += '<tr><th scope="row" class="px-2 py-1 text-left font-mono font-medium text-slate-600">' + t + '</th>';
+        days.forEach((d) => {
+          const label = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + t;
+          rows += '<td><button type="button" class="slot w-full rounded bg-emerald-500 px-1 py-2 font-semibold text-white transition-colors duration-75 focus:outline-none focus:ring-2 focus:ring-emerald-700" data-label="' + label + '" aria-label="' + label + ', available">Available</button></td>';
+        });
+        rows += '</tr>';
+      });
+      $('slotBody').innerHTML = rows;
+
+      document.querySelectorAll('.slot').forEach((btn) => {
+        const snatch = (e) => {
+          if (btn.dataset.booked) return;
+          btn.dataset.booked = '1';
+          btn.className = 'slot w-full cursor-not-allowed rounded bg-red-800 px-1 py-2 font-semibold text-red-100';
+          btn.textContent = 'Booked';
+          btn.setAttribute('aria-disabled', 'true');
+          btn.setAttribute('aria-label', btn.dataset.label + ', booked');
+          showBadge(e, btn);
+        };
+        btn.addEventListener('pointerenter', snatch);
+        btn.addEventListener('focus', snatch);
+        btn.addEventListener('click', (e) => { e.preventDefault(); snatch(e); });
+      });
+      $('tractorSlot').addEventListener('click', () => {
+        openModal({
+          title: 'Vehicle Category Mismatch',
+          body: 'You do not possess a commercial tractor endorsement. <span class="mt-2 block font-mono text-xs text-slate-400">Ref: COV-ERR-TRAC-07</span>',
+          button: 'Understood',
+        });
+      });
+    }
+    let badgeTimer;
+    function showBadge(e, btn) {
+      const b = $('slotBadge');
+      const applicant = 8000 + Math.floor(Math.random() * 1999);
+      b.textContent = 'Slot allocated to Applicant #' + applicant + ' just 0.1s ago.';
+      let x, y;
+      if (e && typeof e.clientX === 'number' && e.clientX > 0) { x = e.clientX; y = e.clientY; }
+      else { const r = btn.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top; }
+      b.classList.remove('hidden');
+      const w = b.offsetWidth;
+      b.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w / 2)) + 'px';
+      b.style.top = Math.max(8, y - 40) + 'px';
+      clearTimeout(badgeTimer);
+      badgeTimer = setTimeout(() => b.classList.add('hidden'), 1800);
+    }
+
+    /* ---------- C. Sneak into basket ---------- */
+    const cores = [...document.querySelectorAll('.core')];
+    const riders = [...document.querySelectorAll('.rider')];
+    const CONVENIENCE = 99;
+    function anyCore() { return cores.some((c) => c.checked); }
+    function renderFees() {
+      const lines = [];
+      cores.concat(riders).forEach((c) => {
+        if (c.checked) lines.push([c.closest('label').querySelector('.text-sm').textContent, +c.dataset.fee]);
+      });
+      if (lines.length) lines.push(['e-Seva Digital Signature & Convenience Fee', CONVENIENCE]);
+      const total = lines.reduce((s, l) => s + l[1], 0);
+      $('feeLines').innerHTML = lines.length
+        ? lines.map((l) => '<li class="flex justify-between gap-3"><span class="text-xs leading-snug">' + l[0] + '</span><span class="shrink-0 font-mono text-xs">' + inr(l[1]) + '</span></li>').join('')
+        : '<li class="text-xs text-slate-400">No vehicle class selected.</li>';
+      $('feeTotal').textContent = inr(total);
+    }
+    function clearCategories() {
+      cores.concat(riders).forEach((c) => (c.checked = false));
+      $('riders').classList.add('hidden');
+      renderFees();
+    }
+    cores.forEach((c) => c.addEventListener('change', () => {
+      if (anyCore()) {
+        $('riders').classList.remove('hidden');
+        riders.forEach((r) => (r.checked = true));
+      } else {
+        clearCategories();
+      }
+      renderFees();
+    }));
+    riders.forEach((r) => r.addEventListener('change', () => {
+      if (!r.checked) {
+        toast('Unchecking mandatory statutory riders will unselect your core driver category.');
+        clearCategories();
+      }
+    }));
+
+    /* ---------- D. Inverted eye test ---------- */
+    const DIRS = { right: 0, down: 90, left: 180, up: 270 };
+    let currentDir = 'right';
+    let passes = 0;
+    function newE() {
+      const keys = Object.keys(DIRS);
+      currentDir = keys[Math.floor(Math.random() * keys.length)];
+      $('eGlyph').style.transform = 'rotate(' + DIRS[currentDir] + 'deg)';
+    }
+    function invert(on) {
+      $('chartStage').style.transform = on ? 'rotate(180deg)' : 'none';
+      $('flipWarn').classList.toggle('hidden', !on);
+    }
+    const pad4 = $('dirPad');
+    document.querySelectorAll('.dir').forEach((b) => {
+      b.addEventListener('pointerenter', () => invert(true));
+      b.addEventListener('focus', () => invert(true));
+      b.addEventListener('click', () => {
+        if (b.dataset.dir === currentDir) {
+          passes = Math.min(3, passes + 1);
+        } else {
+          passes = 0;
+          toast('Response mismatch. Perceptual calibration counter reset.');
+        }
+        $('visionStatus').textContent = passes >= 3 ? 'Vision check: PASSED' : 'Passes: ' + passes + ' / 3 required';
+        newE();
+      });
+    });
+    pad4.addEventListener('pointerleave', () => invert(false));
+    pad4.addEventListener('focusout', (e) => { if (!pad4.contains(e.relatedTarget)) invert(false); });
+
+    /* ---------- E. Evasive checkbox ---------- */
+    const zone = $('declZone'), box = $('declBox');
+    const RADIUS = 35;
+    let corner = 0;
+    function cornerPos(i) {
+      const p = 12;
+      const W = zone.clientWidth, H = zone.clientHeight, w = box.offsetWidth, h = box.offsetHeight;
+      return [[p, p], [W - w - p, p], [W - w - p, H - h - p], [p, H - h - p]][i];
+    }
+    function placeBox(i) {
+      corner = i;
+      const [x, y] = cornerPos(i);
+      box.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    }
+    function evade(clientX, clientY) {
+      const r = box.getBoundingClientRect();
+      const dx = Math.max(r.left - clientX, 0, clientX - r.right);
+      const dy = Math.max(r.top - clientY, 0, clientY - r.bottom);
+      if (Math.hypot(dx, dy) > RADIUS) return false;
+      const z = zone.getBoundingClientRect();
+      let best = corner, bestDist = -1;
+      for (let i = 0; i < 4; i++) {
+        if (i === corner) continue;
+        const [x, y] = cornerPos(i);
+        const cx = z.left + x + box.offsetWidth / 2, cy = z.top + y + box.offsetHeight / 2;
+        const dist = Math.hypot(cx - clientX, cy - clientY);
+        if (dist > bestDist) { bestDist = dist; best = i; }
+      }
+      placeBox(best);
+      return true;
+    }
+    document.addEventListener('pointermove', (e) => evade(e.clientX, e.clientY));
+    box.addEventListener('pointerdown', (e) => { if (evade(e.clientX, e.clientY)) e.preventDefault(); });
+    window.addEventListener('resize', () => placeBox(corner));
+
+    /* ---------- F. 99% crash ---------- */
+    const STAGES = [
+      [15, 'Encrypting biometric token...'],
+      [55, 'Validating Aadhaar e-KYC handshake...'],
+      [88, 'Reserving ADTT slot with RTO server...'],
+      [99, 'Finalising payment authorisation...'],
+    ];
+    let busy = false;
+    $('payBtn').addEventListener('click', () => {
+      if (busy) return;
+      busy = true;
+      const bar = $('progressBar');
+      bar.className = 'progress-bar shimmer h-full w-0 rounded-full bg-navy-700';
+      bar.style.width = '0%';
+      $('progressPct').textContent = '0%';
+      $('progressLabel').textContent = 'Initialising secure channel...';
+      openModal({
+        title: 'Processing Secure Transaction',
+        body: 'Do not refresh, close this window, or press the back button. Your session is being cryptographically sealed.',
+        progress: true,
+        hideButton: true,
+      });
+      $('modalCard').focus();
+      let i = 0;
+      const step = () => {
+        const [pct, label] = STAGES[i];
+        bar.style.width = pct + '%';
+        $('progressPct').textContent = pct + '%';
+        $('progressLabel').textContent = label;
+        i++;
+        if (i < STAGES.length) setTimeout(step, 900 + Math.random() * 500);
+        else setTimeout(crash, 3000 + 700);
+      };
+      setTimeout(step, 400);
+    });
+    function crash() {
+      const bar = $('progressBar');
+      bar.classList.remove('bg-navy-700', 'shimmer');
+      bar.classList.add('bg-red-600');
+      $('progressLabel').textContent = 'FAILED';
+      $('modalTitle').textContent = 'Server Verification Timeout';
+      $('modalBody').innerHTML = 'User interaction hesitation exceeded allowable regulatory latency threshold <span class="font-mono text-red-700">(Error code: 0xDEADBEEF)</span>. Data reset to prevent identity spoofing.';
+      $('modalBtn').textContent = 'Acknowledge & Restart';
+      $('modalBtn').classList.remove('hidden');
+      $('modalBtn').focus();
+      modalOnClose = resetAll;
+    }
+
+    /* ---------- Reset ---------- */
+    function resetAll() {
+      busy = false;
+      $('fullName').value = '';
+      $('llNumber').value = '';
+      yr.value = 1900; mo.value = 1; dy.value = 1;
+      renderDob();
+      buildSlots();
+      clearCategories();
+      passes = 0;
+      $('visionStatus').textContent = 'Passes: 0 / 3 required';
+      invert(false);
+      newE();
+      $('declCheck').checked = false;
+      placeBox(0);
+      lockLeft = 180;
+      renderLock();
+      $('top').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => $('fullName').focus({ preventScroll: true }), 500);
+    }
+
+    /* ---------- Init ---------- */
+    renderDob();
+    buildSlots();
+    renderFees();
+    newE();
+    placeBox(0);
+    renderLock();
+  })();
+  </script>
+</body>
+</html>
